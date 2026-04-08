@@ -8,6 +8,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollToPlugin.min.js"></script>
 <style>
   *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
 
@@ -814,118 +815,6 @@
 </section>
 
 <script>
-// Particle system for hero canvas
-let particleIndex = 0;
-const canvas = document.getElementById('hero-canvas');
-if (canvas) {
-  const ctx = canvas.getContext('2d');
-  let particles = [];
-
-  function resizeCanvas() {
-    canvas.width = window.innerWidth;
-    canvas.height = window.innerHeight;
-  }
-
-  resizeCanvas();
-  window.addEventListener('resize', resizeCanvas);
-
-  class Particle {
-    constructor() {
-      this.x = Math.random() * canvas.width;
-      this.y = Math.random() * canvas.height;
-      this.vx = (Math.random() - 0.5) * 0.5;
-      this.vy = (Math.random() - 0.5) * 0.5;
-      this.life = 1;
-      this.decay = Math.random() * 0.003 + 0.0015;
-      this.size = Math.random() * 2 + 0.5;
-    }
-
-    update() {
-      this.x += this.vx;
-      this.y += this.vy;
-      this.life -= this.decay;
-    }
-
-    draw(ctx) {
-      ctx.fillStyle = `rgba(200, 184, 255, ${this.life * 0.15})`;
-      ctx.fillRect(this.x, this.y, this.size, this.size);
-    }
-  }
-
-  function animate() {
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-    if (particleIndex % 8 === 0 && particles.length < 150) {
-      particles.push(new Particle());
-    }
-    particleIndex++;
-
-    particles = particles.filter(p => {
-      p.update();
-      p.draw(ctx);
-      return p.life > 0;
-    });
-
-    requestAnimationFrame(animate);
-  }
-  animate();
-}
-
-// Vision canvas lattice
-const visionCanvas = document.getElementById('vision-canvas');
-if (visionCanvas) {
-  const ctx = visionCanvas.getContext('2d');
-  let angle = 0;
-
-  function resizeVisionCanvas() {
-    visionCanvas.width = visionCanvas.parentElement.clientWidth;
-    visionCanvas.height = visionCanvas.parentElement.clientHeight;
-  }
-
-  resizeVisionCanvas();
-  window.addEventListener('resize', resizeVisionCanvas);
-
-  function drawLattice() {
-    ctx.fillStyle = 'rgba(8, 8, 12, 1)';
-    ctx.fillRect(0, 0, visionCanvas.width, visionCanvas.height);
-
-    const spacing = 40;
-    const offset = Math.sin(angle * 0.0005) * 15;
-
-    ctx.strokeStyle = 'rgba(200, 184, 255, 0.06)';
-    ctx.lineWidth = 1;
-
-    for (let x = -spacing; x < visionCanvas.width + spacing; x += spacing) {
-      for (let y = -spacing; y < visionCanvas.height + spacing; y += spacing) {
-        const offsetX = Math.sin((x + y) * 0.01 + angle * 0.001) * 5;
-        const offsetY = Math.cos((x - y) * 0.01 + angle * 0.0008) * 5;
-
-        if (x > -spacing && x < visionCanvas.width + spacing) {
-          ctx.beginPath();
-          ctx.moveTo(x + offsetX, y + offsetY - spacing/2);
-          ctx.lineTo(x + offsetX, y + offsetY + spacing/2);
-          ctx.stroke();
-        }
-
-        if (y > -spacing && y < visionCanvas.height + spacing) {
-          ctx.beginPath();
-          ctx.moveTo(x + offsetX - spacing/2, y + offsetY);
-          ctx.lineTo(x + offsetX + spacing/2, y + offsetY);
-          ctx.stroke();
-        }
-
-        const dist = Math.sqrt(Math.pow(offsetX, 2) + Math.pow(offsetY, 2));
-        ctx.fillStyle = `rgba(200, 184, 255, ${0.1 - dist * 0.01})`;
-        ctx.fillRect(x + offsetX - 1.5, y + offsetY - 1.5, 3, 3);
-      }
-    }
-
-    angle += 1;
-    requestAnimationFrame(drawLattice);
-  }
-  drawLattice();
-}
-
 // Nav scroll effect
 const nav = document.getElementById('nav');
 window.addEventListener('scroll', () => {
@@ -937,7 +826,7 @@ window.addEventListener('scroll', () => {
 });
 
 // Hero entrance animation
-gsap.registerPlugin(ScrollTrigger);
+gsap.registerPlugin(ScrollTrigger, ScrollToPlugin);
 const tl = gsap.timeline();
 
 tl.from('.hero-eyebrow', {
@@ -1093,7 +982,6 @@ document.querySelectorAll('a[href^="#"]').forEach(a => {
   });
 });
 </script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollToPlugin.min.js"></script>
 
 </body>
 </html>
