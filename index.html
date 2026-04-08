@@ -1,0 +1,1099 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Cataflux — AI-Powered Materials Discovery</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
+<style>
+  *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+  :root {
+    --bg: #08080C;
+    --bg-subtle: #0C0C12;
+    --text: #E8E6E3;
+    --text-dim: #7A7A85;
+    --text-muted: #3E3E4A;
+    --accent: #C8B8FF;
+    --accent-warm: #FFD6A5;
+    --border: rgba(255,255,255,0.06);
+    --serif: 'Instrument Serif', Georgia, serif;
+    --sans: 'Inter', -apple-system, system-ui, sans-serif;
+  }
+
+  html { scroll-behavior: auto; /* GSAP handles smooth scroll */ }
+
+  body {
+    font-family: var(--sans);
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.6;
+    overflow-x: hidden;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  ::selection { background: rgba(200,184,255,0.2); }
+
+  /* ─── NAV ─── */
+  nav {
+    position: fixed;
+    top: 0; left: 0; right: 0;
+    z-index: 100;
+    padding: 0 clamp(1.5rem, 4vw, 4rem);
+    height: 72px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    transition: background 0.5s, border-color 0.5s;
+    border-bottom: 1px solid transparent;
+  }
+
+  nav.scrolled {
+    background: rgba(8,8,12,0.82);
+    backdrop-filter: blur(24px) saturate(1.2);
+    -webkit-backdrop-filter: blur(24px) saturate(1.2);
+    border-bottom-color: var(--border);
+  }
+
+  .nav-logo {
+    font-family: var(--sans);
+    font-weight: 600;
+    font-size: 1.15rem;
+    letter-spacing: -0.03em;
+    color: var(--text);
+    text-decoration: none;
+  }
+
+  .nav-right { display: flex; align-items: center; gap: 2.5rem; }
+  .nav-links { display: flex; gap: 2rem; list-style: none; }
+
+  .nav-links a {
+    color: var(--text-dim);
+    text-decoration: none;
+    font-size: 0.85rem;
+    font-weight: 400;
+    letter-spacing: 0.01em;
+    transition: color 0.25s;
+  }
+
+  .nav-links a:hover { color: var(--text); }
+
+  .nav-cta {
+    font-size: 0.85rem;
+    font-weight: 500;
+    color: var(--bg);
+    background: var(--text);
+    padding: 0.5rem 1.25rem;
+    border-radius: 100px;
+    text-decoration: none;
+    transition: opacity 0.25s;
+  }
+
+  .nav-cta:hover { opacity: 0.85; }
+
+  /* ─── HERO ─── */
+  .hero {
+    position: relative;
+    height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    margin-top: 72px;
+    overflow: hidden;
+  }
+
+  #hero-canvas {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+  }
+
+  .hero-bg-img {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    z-index: 0;
+  }
+
+  .hero-gradient-overlay {
+    position: absolute;
+    inset: 0;
+    background:
+      linear-gradient(180deg, rgba(8,8,12,0.5) 0%, rgba(8,8,12,0.3) 30%, rgba(8,8,12,0.6) 60%, rgba(8,8,12,0.95) 100%);
+    pointer-events: none;
+    z-index: 1;
+  }
+
+  .hero-content {
+    position: relative;
+    z-index: 2;
+    max-width: 700px;
+    padding: 0 clamp(1.5rem, 4vw, 3rem);
+  }
+
+  .hero-eyebrow {
+    font-size: 0.82rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 1.5rem;
+    font-weight: 500;
+    opacity: 0.9;
+  }
+
+  .hero h1 {
+    margin: 0;
+    font-family: var(--serif);
+    font-weight: 400;
+    font-size: clamp(2.8rem, 6vw, 5rem);
+    line-height: 1.1;
+    letter-spacing: -0.03em;
+    margin-bottom: 1.5rem;
+    overflow: hidden;
+  }
+
+  .hero-line { display: block; overflow: hidden; }
+  .hero-line-inner {
+    display: inline-block;
+    transform: translateY(100%);
+    animation: heroLineSlideIn 0.9s cubic-bezier(0.33, 0.66, 0.66, 1) forwards;
+  }
+
+  .hero-line:nth-child(1) .hero-line-inner { animation-delay: 0.1s; }
+  .hero-line:nth-child(2) .hero-line-inner { animation-delay: 0.2s; }
+  .hero-line:nth-child(3) .hero-line-inner { animation-delay: 0.3s; }
+
+  @keyframes heroLineSlideIn {
+    to { transform: translateY(0); }
+  }
+
+  .hero h1 em {
+    color: var(--accent);
+    font-style: normal;
+    font-weight: 400;
+  }
+
+  .hero-sub {
+    font-size: clamp(0.9rem, 2vw, 1.05rem);
+    color: rgba(232,230,227,0.8);
+    line-height: 1.7;
+    margin-bottom: 2rem;
+    text-shadow: 0 1px 8px rgba(8,8,12,0.6);
+  }
+
+  .hero h1 {
+    text-shadow: 0 2px 20px rgba(8,8,12,0.5);
+  }
+
+  .hero-actions {
+    display: flex;
+    gap: 1rem;
+    justify-content: center;
+    flex-wrap: wrap;
+  }
+
+  .btn-primary {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.75rem 1.75rem;
+    background: var(--text);
+    color: var(--bg);
+    border-radius: 100px;
+    text-decoration: none;
+    font-size: 0.85rem;
+    font-weight: 600;
+    transition: opacity 0.25s;
+  }
+
+  .btn-primary:hover { opacity: 0.85; }
+
+  .btn-ghost {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.75rem 1.75rem;
+    border: 1px solid var(--text-muted);
+    color: var(--text);
+    border-radius: 100px;
+    text-decoration: none;
+    font-size: 0.85rem;
+    font-weight: 400;
+    transition: all 0.25s;
+  }
+
+  .btn-ghost:hover {
+    border-color: var(--text);
+    color: var(--text);
+  }
+
+  .hero-scroll-hint {
+    position: absolute;
+    bottom: 40px;
+    left: 50%;
+    transform: translateX(-50%);
+    text-align: center;
+    z-index: 3;
+  }
+
+  .hero-scroll-hint span {
+    display: block;
+    font-size: 0.78rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--text-dim);
+    margin-bottom: 0.75rem;
+  }
+
+  .scroll-line {
+    width: 1px;
+    height: 20px;
+    background: linear-gradient(to bottom, var(--text-dim), transparent);
+    margin: 0 auto;
+    animation: scrollPulse 2s ease-in-out infinite;
+  }
+
+  @keyframes scrollPulse {
+    0%, 100% { opacity: 0.3; transform: translateY(0); }
+    50% { opacity: 0.8; transform: translateY(4px); }
+  }
+
+  /* ─── SECTIONS ─── */
+  section {
+    padding: clamp(5rem, 8vh, 8rem) clamp(1.5rem, 4vw, 4rem);
+  }
+
+  .section-inner {
+    max-width: 1200px;
+    margin: 0 auto;
+  }
+
+  .section-label {
+    font-size: 0.75rem;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 0.75rem;
+    font-weight: 500;
+  }
+
+  .section-heading {
+    font-family: var(--serif);
+    font-weight: 400;
+    font-style: italic;
+    font-size: clamp(2rem, 4.5vw, 3.2rem);
+    line-height: 1.15;
+    letter-spacing: -0.025em;
+    margin-bottom: 1.25rem;
+  }
+
+  .section-text {
+    color: var(--text-dim);
+    font-size: clamp(0.95rem, 2vw, 1.05rem);
+    line-height: 1.8;
+    font-weight: 300;
+  }
+
+  /* ─── HERO (refresh) ─── */
+  .hero { background: var(--bg); }
+
+  /* ─── PROBLEM ─── */
+  .problem { background: var(--bg); }
+  .problem-header { margin-bottom: clamp(3rem, 5vh, 4rem); }
+
+  .problem-visual {
+    position: relative;
+    aspect-ratio: 21 / 9;
+    width: 100%;
+    border-radius: 16px;
+    overflow: hidden;
+    background: var(--bg-subtle);
+    border: 1px solid var(--border);
+    margin: clamp(3rem, 5vh, 4rem) 0;
+  }
+
+  .problem-visual img {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .stats-row {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: clamp(2rem, 4vw, 3rem);
+    margin-top: clamp(3rem, 5vh, 4rem);
+    padding-top: clamp(2.5rem, 4vh, 3rem);
+    border-top: 1px solid var(--border);
+  }
+
+  .stat-item { }
+
+  .stat-number {
+    font-family: var(--serif);
+    font-style: italic;
+    font-size: clamp(2.5rem, 4vw, 3.5rem);
+    color: var(--accent);
+    letter-spacing: -0.03em;
+    font-weight: 400;
+    line-height: 1;
+    margin-bottom: 0.75rem;
+  }
+
+  .stat-label {
+    font-size: 0.88rem;
+    color: var(--text-dim);
+    font-weight: 300;
+    line-height: 1.5;
+  }
+
+  /* ─── BREAKTHROUGH ─── */
+  .breakthrough {
+    background: var(--bg-subtle);
+    border-top: 1px solid var(--border);
+    border-bottom: 1px solid var(--border);
+  }
+
+  .breakthrough-header { margin-bottom: clamp(4rem, 6vh, 6rem); }
+
+  .vision-layout {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: clamp(3rem, 6vw, 8rem);
+    align-items: center;
+  }
+
+  .vision-visual {
+    position: relative;
+    aspect-ratio: 4/3;
+    border-radius: 16px;
+    overflow: hidden;
+    background: var(--bg);
+    border: 1px solid var(--border);
+  }
+
+  .vision-visual img {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  #vision-canvas {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+  }
+
+  .vision-content { }
+
+  .vision-features {
+    margin-top: 2.5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+  }
+
+  .vision-feature {
+    display: flex;
+    gap: 1rem;
+    align-items: baseline;
+  }
+
+  .vision-feature-marker {
+    width: 5px;
+    height: 5px;
+    border-radius: 50%;
+    background: var(--accent);
+    flex-shrink: 0;
+    margin-top: 0.55rem;
+    opacity: 0.5;
+  }
+
+  .vision-feature span {
+    color: var(--text-dim);
+    font-size: 0.93rem;
+    line-height: 1.65;
+    font-weight: 300;
+  }
+
+  .section-image {
+    width: 100%;
+    border-radius: 16px;
+    overflow: hidden;
+    margin-bottom: clamp(3rem, 5vh, 4rem);
+    border: 1px solid var(--border);
+  }
+
+  .section-image img {
+    display: block;
+    width: 100%;
+    height: auto;
+  }
+
+  /* ─── APPLICATIONS ─── */
+  .applications { background: var(--bg); }
+  .applications-header { margin-bottom: clamp(4rem, 6vh, 6rem); }
+
+  .applications-areas { display: grid; gap: 0; }
+
+  .research-item {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: clamp(2rem, 4vw, 6rem);
+    align-items: start;
+    padding: clamp(2.5rem, 4vh, 4rem) 0;
+    border-top: 1px solid var(--border);
+  }
+
+  .research-item:last-child { border-bottom: 1px solid var(--border); }
+
+  .research-item-num {
+    font-size: 0.7rem;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    margin-bottom: 1rem;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .research-item h3 {
+    font-family: var(--serif);
+    font-style: italic;
+    font-weight: 400;
+    font-size: clamp(1.5rem, 2.5vw, 2.1rem);
+    line-height: 1.15;
+    letter-spacing: -0.02em;
+  }
+
+  .research-item p {
+    color: var(--text-dim);
+    font-size: 0.93rem;
+    line-height: 1.8;
+    font-weight: 300;
+    padding-top: 0.5rem;
+  }
+
+  /* ─── TEAM ─── */
+  .team { background: var(--bg); }
+  .team-header { margin-bottom: clamp(4rem, 6vh, 6rem); }
+
+  .team-list { display: flex; flex-direction: column; }
+
+  .team-member {
+    display: grid;
+    grid-template-columns: minmax(180px, 1fr) 1.5fr 160px;
+    gap: 2rem;
+    align-items: center;
+    padding: clamp(1.5rem, 2.5vh, 2.5rem) 0;
+    border-top: 1px solid var(--border);
+    transition: border-color 0.4s;
+  }
+
+  .team-member:last-child { border-bottom: 1px solid var(--border); }
+
+  .team-member:hover { border-top-color: rgba(200,184,255,0.12); }
+
+  .team-member-name {
+    font-family: var(--serif);
+    font-style: italic;
+    font-size: clamp(1.4rem, 2.5vw, 2rem);
+    font-weight: 400;
+    letter-spacing: -0.02em;
+  }
+
+  .team-member-role {
+    color: var(--text-dim);
+    font-size: 0.88rem;
+    font-weight: 300;
+  }
+
+  .team-member-links { display: flex; gap: 1rem; }
+
+  .team-member-links a {
+    color: var(--text-muted);
+    text-decoration: none;
+    font-size: 0.78rem;
+    transition: color 0.25s;
+  }
+
+  .team-member-links a:hover { color: var(--accent); }
+
+  /* ─── CONTACT ─── */
+  .contact {
+    background: var(--bg);
+    border-top: 1px solid var(--border);
+    padding-bottom: clamp(3rem, 6vh, 5rem);
+  }
+
+  .contact-layout {
+    display: grid;
+    grid-template-columns: 1.2fr 0.8fr;
+    gap: clamp(3rem, 6vw, 8rem);
+    align-items: end;
+  }
+
+  .contact-heading {
+    font-family: var(--serif);
+    font-weight: 400;
+    font-style: italic;
+    font-size: clamp(2.2rem, 4.5vw, 3.8rem);
+    line-height: 1.08;
+    letter-spacing: -0.025em;
+  }
+
+  .contact-email {
+    display: inline-block;
+    color: var(--accent);
+    text-decoration: none;
+    font-size: 1.05rem;
+    font-weight: 400;
+    margin-bottom: 2rem;
+    transition: opacity 0.25s;
+    border-bottom: 1px solid rgba(200,184,255,0.15);
+    padding-bottom: 2px;
+  }
+
+  .contact-email:hover { opacity: 0.7; }
+  .contact-links { display: flex; gap: 2rem; }
+
+  .contact-links a {
+    color: var(--text-muted);
+    text-decoration: none;
+    font-size: 0.82rem;
+    transition: color 0.25s;
+  }
+
+  .contact-links a:hover { color: var(--text-dim); }
+
+  .footer-bar {
+    margin-top: clamp(5rem, 10vh, 10rem);
+    padding-top: clamp(3rem, 5vh, 4rem);
+    border-top: 1px solid var(--border);
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.78rem;
+    color: var(--text-muted);
+  }
+
+  /* ─── RESPONSIVE ─── */
+  @media (max-width: 768px) {
+    .vision-layout { grid-template-columns: 1fr; }
+    .contact-layout { grid-template-columns: 1fr; }
+    .stats-row { grid-template-columns: 1fr; }
+    .team-member { grid-template-columns: 1fr; }
+    .research-item { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<nav id="nav">
+  <a href="#hero" class="nav-logo">Cataflux</a>
+  <div class="nav-right">
+    <ul class="nav-links">
+      <li><a href="#problem">Problem</a></li>
+      <li><a href="#breakthrough">Breakthrough</a></li>
+      <li><a href="#team">Team</a></li>
+      <li><a href="#contact">Contact</a></li>
+    </ul>
+    <a href="#contact" class="nav-cta">Get in touch</a>
+  </div>
+</nav>
+
+<!-- ─── HERO ─── -->
+<section class="hero" id="hero">
+  <img src="hero.png" alt="Atoms reacting on a catalytic surface" class="hero-bg-img">
+  <div class="hero-gradient-overlay"></div>
+
+  <div class="hero-content">
+    <p class="hero-eyebrow">The future of materials R&D</p>
+    <h1>
+      <span class="hero-line"><span class="hero-line-inner">We predict how materials</span></span>
+      <span class="hero-line"><span class="hero-line-inner"><em>react</em></span></span>
+    </h1>
+    <p class="hero-sub">We built the world's largest materials reaction dataset and AI foundation model — for the first time making it possible to design materials computationally instead of by trial and error.</p>
+    <div class="hero-actions">
+      <a href="#problem" class="btn-primary">Learn how</a>
+      <a href="#breakthrough" class="btn-ghost">
+        Our vision
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M3 8h10m0 0L9 4m4 4L9 12" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </a>
+    </div>
+  </div>
+
+  <div class="hero-scroll-hint">
+    <span>Scroll</span>
+    <div class="scroll-line"></div>
+  </div>
+</section>
+
+<!-- ─── PROBLEM ─── -->
+<section class="problem" id="problem">
+  <div class="section-inner">
+    <div class="problem-header">
+      <p class="section-label" data-reveal>The problem</p>
+      <h2 class="section-heading" data-reveal>Every material was discovered by trial and error</h2>
+      <p class="section-text" data-reveal>The battery in your phone, the catalyst that made your fuel, the steel holding up this building. Billions of dollars, decades of experimentation — because we couldn't answer one fundamental question: how fast do materials react?</p>
+    </div>
+
+    <div class="problem-visual" data-reveal>
+      <img src="vision_card.png" alt="Vast network of millions of reaction pathways">
+    </div>
+
+    <div class="stats-row" data-reveal>
+      <div class="stat-item">
+        <div class="stat-number">1,000×</div>
+        <div class="stat-label">larger reaction dataset than Meta's</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-number">10⁶+</div>
+        <div class="stat-label">simulated reaction pathways</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-number">1,000×</div>
+        <div class="stat-label">faster than five years ago</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ─── BREAKTHROUGH ─── -->
+<section class="breakthrough" id="breakthrough">
+  <div class="section-inner">
+    <div class="breakthrough-header">
+      <p class="section-label" data-reveal>The breakthrough</p>
+    </div>
+
+    <div class="vision-layout">
+      <div class="vision-content">
+        <h2 class="section-heading" data-reveal>A foundation model for how materials transform</h2>
+        <p class="section-text" data-reveal>A recent breakthrough in ML made it possible to simulate atoms a thousand times faster. We used it to build the world's largest dataset of material reactions — then trained a generative AI foundation model that finally makes atomic-scale reaction simulations tractable.</p>
+
+        <div class="vision-features" data-reveal>
+          <div class="vision-feature">
+            <div class="vision-feature-marker"></div>
+            <span>Predicts not just stability, but reaction kinetics and pathways</span>
+          </div>
+          <div class="vision-feature">
+            <div class="vision-feature-marker"></div>
+            <span>Simulates how real materials react, transform, and fail — at scale</span>
+          </div>
+          <div class="vision-feature">
+            <div class="vision-feature-marker"></div>
+            <span>Trained on 1,000× more reaction data than any comparable dataset</span>
+          </div>
+          <div class="vision-feature">
+            <div class="vision-feature-marker"></div>
+            <span>Built on decades of physics expertise in reaction mechanisms</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="vision-visual" data-reveal>
+        <img src="breakthrough.png" alt="Potential energy surface with NEB reaction pathway">
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ─── APPLICATIONS ─── -->
+<section class="applications" id="applications">
+  <div class="section-inner">
+    <div class="applications-header">
+      <p class="section-label" data-reveal>Applications</p>
+      <h2 class="section-heading" data-reveal>Replacing the most expensive part of materials R&D</h2>
+      <p class="section-text" data-reveal>Every materials company in the world is bottlenecked by physical experimentation. We're not competing for a slice of computational chemistry — we're replacing trial and error.</p>
+    </div>
+
+    <img src="applications.png" alt="From computation to real materials" style="display:block; width:100%; height:auto; border-radius:16px; border:1px solid rgba(255,255,255,0.06); margin-bottom:clamp(3rem,5vh,4rem);">
+
+    <div class="applications-areas">
+      <div class="research-item" data-reveal>
+        <div>
+          <p class="research-item-num">01</p>
+          <h3>Catalyst design</h3>
+        </div>
+        <p>Predict which catalyst surfaces and compositions will actually work before synthesizing them — accelerating discovery from years to weeks.</p>
+      </div>
+      <div class="research-item" data-reveal>
+        <div>
+          <p class="research-item-num">02</p>
+          <h3>Battery development</h3>
+        </div>
+        <p>Simulate electrode degradation, ion transport, and interface reactions to design batteries that last longer and charge faster.</p>
+      </div>
+      <div class="research-item" data-reveal>
+        <div>
+          <p class="research-item-num">03</p>
+          <h3>Semiconductor manufacturing</h3>
+        </div>
+        <p>Model defect formation and diffusion in semiconductor materials to optimize fabrication processes and improve yields.</p>
+      </div>
+      <div class="research-item" data-reveal>
+        <div>
+          <p class="research-item-num">04</p>
+          <h3>Corrosion prevention</h3>
+        </div>
+        <p>Predict how alloys degrade in real environments — enabling the design of materials that resist corrosion from the start.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ─── TEAM ─── -->
+<section class="team" id="team">
+  <div class="section-inner">
+    <div class="team-header">
+      <p class="section-label" data-reveal>Team</p>
+      <h2 class="section-heading" data-reveal>Built by domain experts</h2>
+    </div>
+
+    <div class="team-list">
+      <div class="team-member">
+        <div class="team-member-name">Ilgar Baghishov</div>
+        <div class="team-member-role">Co-Founder · Computational Chemist</div>
+        <div class="team-member-links">
+          <a href="https://www.linkedin.com/in/ilgarbaghishov/" target="_blank">LinkedIn</a>
+          <a href="https://github.com/IlgarBaghishov" target="_blank">GitHub</a>
+          <a href="https://scholar.google.com/citations?user=Kgbm96sAAAAJ&hl=en" target="_blank">Scholar</a>
+        </div>
+      </div>
+      <div class="team-member">
+        <div class="team-member-name">Sung Hoon Jung</div>
+        <div class="team-member-role">Co-Founder · Computational Chemist</div>
+        <div class="team-member-links">
+          <a href="https://www.linkedin.com/in/sunghjung3/" target="_blank">LinkedIn</a>
+          <a href="https://github.com/sunghjung3" target="_blank">GitHub</a>
+          <a href="https://scholar.google.com/citations?user=bVTKQp4AAAAJ&hl=en" target="_blank">Scholar</a>
+        </div>
+      </div>
+      <div class="team-member">
+        <div class="team-member-name">Graeme Henkelman</div>
+        <div class="team-member-role">Advisor · Professor of Chemistry</div>
+        <div class="team-member-links">
+          <a href="https://henkelmanlab.org/" target="_blank">Website</a>
+          <a href="https://scholar.google.com/citations?user=icjwvPIAAAAJ&hl=en" target="_blank">Scholar</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ─── CONTACT ─── -->
+<section class="contact" id="contact">
+  <div class="section-inner">
+    <div class="contact-layout">
+      <h2 class="contact-heading" data-reveal>Let's build the future of energy together</h2>
+      <div class="contact-right" data-reveal>
+        <a href="mailto:hello@cataflux.com" class="contact-email">hello@cataflux.com</a>
+        <div class="contact-links">
+          <a href="#">Twitter / X</a>
+          <a href="#">LinkedIn</a>
+          <a href="#">GitHub</a>
+        </div>
+      </div>
+    </div>
+    <div class="footer-bar">
+      <span>&copy; 2026 Cataflux</span>
+      <span>AI-powered materials discovery for energy</span>
+    </div>
+  </div>
+</section>
+
+<script>
+// Particle system for hero canvas
+let particleIndex = 0;
+const canvas = document.getElementById('hero-canvas');
+if (canvas) {
+  const ctx = canvas.getContext('2d');
+  let particles = [];
+
+  function resizeCanvas() {
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+  }
+
+  resizeCanvas();
+  window.addEventListener('resize', resizeCanvas);
+
+  class Particle {
+    constructor() {
+      this.x = Math.random() * canvas.width;
+      this.y = Math.random() * canvas.height;
+      this.vx = (Math.random() - 0.5) * 0.5;
+      this.vy = (Math.random() - 0.5) * 0.5;
+      this.life = 1;
+      this.decay = Math.random() * 0.003 + 0.0015;
+      this.size = Math.random() * 2 + 0.5;
+    }
+
+    update() {
+      this.x += this.vx;
+      this.y += this.vy;
+      this.life -= this.decay;
+    }
+
+    draw(ctx) {
+      ctx.fillStyle = `rgba(200, 184, 255, ${this.life * 0.15})`;
+      ctx.fillRect(this.x, this.y, this.size, this.size);
+    }
+  }
+
+  function animate() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    if (particleIndex % 8 === 0 && particles.length < 150) {
+      particles.push(new Particle());
+    }
+    particleIndex++;
+
+    particles = particles.filter(p => {
+      p.update();
+      p.draw(ctx);
+      return p.life > 0;
+    });
+
+    requestAnimationFrame(animate);
+  }
+  animate();
+}
+
+// Vision canvas lattice
+const visionCanvas = document.getElementById('vision-canvas');
+if (visionCanvas) {
+  const ctx = visionCanvas.getContext('2d');
+  let angle = 0;
+
+  function resizeVisionCanvas() {
+    visionCanvas.width = visionCanvas.parentElement.clientWidth;
+    visionCanvas.height = visionCanvas.parentElement.clientHeight;
+  }
+
+  resizeVisionCanvas();
+  window.addEventListener('resize', resizeVisionCanvas);
+
+  function drawLattice() {
+    ctx.fillStyle = 'rgba(8, 8, 12, 1)';
+    ctx.fillRect(0, 0, visionCanvas.width, visionCanvas.height);
+
+    const spacing = 40;
+    const offset = Math.sin(angle * 0.0005) * 15;
+
+    ctx.strokeStyle = 'rgba(200, 184, 255, 0.06)';
+    ctx.lineWidth = 1;
+
+    for (let x = -spacing; x < visionCanvas.width + spacing; x += spacing) {
+      for (let y = -spacing; y < visionCanvas.height + spacing; y += spacing) {
+        const offsetX = Math.sin((x + y) * 0.01 + angle * 0.001) * 5;
+        const offsetY = Math.cos((x - y) * 0.01 + angle * 0.0008) * 5;
+
+        if (x > -spacing && x < visionCanvas.width + spacing) {
+          ctx.beginPath();
+          ctx.moveTo(x + offsetX, y + offsetY - spacing/2);
+          ctx.lineTo(x + offsetX, y + offsetY + spacing/2);
+          ctx.stroke();
+        }
+
+        if (y > -spacing && y < visionCanvas.height + spacing) {
+          ctx.beginPath();
+          ctx.moveTo(x + offsetX - spacing/2, y + offsetY);
+          ctx.lineTo(x + offsetX + spacing/2, y + offsetY);
+          ctx.stroke();
+        }
+
+        const dist = Math.sqrt(Math.pow(offsetX, 2) + Math.pow(offsetY, 2));
+        ctx.fillStyle = `rgba(200, 184, 255, ${0.1 - dist * 0.01})`;
+        ctx.fillRect(x + offsetX - 1.5, y + offsetY - 1.5, 3, 3);
+      }
+    }
+
+    angle += 1;
+    requestAnimationFrame(drawLattice);
+  }
+  drawLattice();
+}
+
+// Nav scroll effect
+const nav = document.getElementById('nav');
+window.addEventListener('scroll', () => {
+  if (window.scrollY > 20) {
+    nav.classList.add('scrolled');
+  } else {
+    nav.classList.remove('scrolled');
+  }
+});
+
+// Hero entrance animation
+gsap.registerPlugin(ScrollTrigger);
+const tl = gsap.timeline();
+
+tl.from('.hero-eyebrow', {
+  opacity: 0, y: 20, duration: 0.8,
+  ease: 'power2.out'
+}, 0);
+
+tl.from('.hero h1', {
+  opacity: 0, duration: 0.6,
+  ease: 'power2.out'
+}, 0.1);
+
+tl.from('.hero-sub', {
+  opacity: 0, y: 20, duration: 0.8,
+  ease: 'power2.out'
+}, 0.2);
+
+tl.from('.hero-actions', {
+  opacity: 0, y: 20, duration: 0.8,
+  ease: 'power2.out'
+}, 0.3);
+
+tl.from('.hero-scroll-hint', {
+  opacity: 0, duration: 0.8,
+  ease: 'power2.out'
+}, '-=0.2');
+
+// Hero parallax on scroll
+gsap.to('.hero-content', {
+  y: -80,
+  opacity: 0,
+  ease: 'none',
+  scrollTrigger: {
+    trigger: '.hero',
+    start: 'top top',
+    end: 'bottom top',
+    scrub: true
+  }
+});
+
+gsap.to('.hero-bg-img', {
+  y: 100,
+  ease: 'none',
+  scrollTrigger: {
+    trigger: '.hero',
+    start: 'top top',
+    end: 'bottom top',
+    scrub: true
+  }
+});
+
+// Section reveals — batch with stagger
+document.querySelectorAll('[data-reveal]').forEach((el) => {
+  gsap.from(el, {
+    y: 40,
+    opacity: 0,
+    duration: 0.9,
+    ease: 'power3.out',
+    scrollTrigger: {
+      trigger: el,
+      start: 'top 85%',
+      toggleActions: 'play none none none'
+    }
+  });
+});
+
+// Research items — stagger with subtle slide
+gsap.utils.toArray('.research-item').forEach((item, i) => {
+  const children = item.children;
+  gsap.from(children, {
+    y: 30,
+    opacity: 0,
+    duration: 0.8,
+    ease: 'power3.out',
+    stagger: 0.1,
+    scrollTrigger: {
+      trigger: item,
+      start: 'top 85%',
+      toggleActions: 'play none none none'
+    }
+  });
+});
+
+// Vision visual — parallax only (entrance handled by data-reveal)
+gsap.to('.vision-visual', {
+  y: -20,
+  ease: 'none',
+  scrollTrigger: {
+    trigger: '.breakthrough',
+    start: 'top bottom',
+    end: 'bottom top',
+    scrub: true
+  }
+});
+
+// Vision features — stagger
+gsap.utils.toArray('.vision-feature').forEach((f, i) => {
+  gsap.from(f, {
+    x: -15,
+    opacity: 0,
+    duration: 0.6,
+    delay: i * 0.08,
+    ease: 'power3.out',
+    scrollTrigger: {
+      trigger: f,
+      start: 'top 90%',
+      toggleActions: 'play none none none'
+    }
+  });
+});
+
+// Team members — stagger entrance
+gsap.utils.toArray('.team-member').forEach((m, i) => {
+  gsap.from(m, {
+    y: 20,
+    opacity: 0,
+    duration: 0.7,
+    delay: i * 0.1,
+    ease: 'power3.out',
+    scrollTrigger: {
+      trigger: m,
+      start: 'top 90%',
+      toggleActions: 'play none none none'
+    }
+  });
+});
+
+// Contact — heading parallax
+gsap.from('.contact-heading', {
+  y: 50,
+  opacity: 0,
+  duration: 1,
+  ease: 'power3.out',
+  scrollTrigger: {
+    trigger: '.contact-heading',
+    start: 'top 85%',
+    toggleActions: 'play none none none'
+  }
+});
+
+// Smooth anchor scroll with GSAP
+document.querySelectorAll('a[href^="#"]').forEach(a => {
+  a.addEventListener('click', (e) => {
+    const target = document.querySelector(a.getAttribute('href'));
+    if (target) {
+      e.preventDefault();
+      gsap.to(window, {
+        duration: 1,
+        scrollTo: { y: target, offsetY: 0 },
+        ease: 'power3.inOut'
+      });
+    }
+  });
+});
+</script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollToPlugin.min.js"></script>
+
+</body>
+</html>
